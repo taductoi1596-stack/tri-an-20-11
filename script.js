@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const envelopeSection = document.getElementById('envelopeSection');
   const envelopeContainer = document.getElementById('envelopeContainer');
   const envelope = document.getElementById('envelope');
+  const btnOpenNow = document.getElementById('btnOpenNow');
   const cardSection = document.getElementById('cardSection');
   const btnCloseCard = document.getElementById('btnCloseCard');
   const recipientSelect = document.getElementById('recipientSelect');
@@ -103,6 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   envelopeContainer.addEventListener('click', openEnvelope);
+  if (btnOpenNow) {
+    btnOpenNow.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEnvelope();
+    });
+  }
   envelopeContainer.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -161,22 +168,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function playTone(freq, time, duration, gainVal = 0.15, type = 'sine') {
     if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
+    try {
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
 
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, time);
+      osc.type = type;
+      const safeTime = Math.max(time, audioCtx.currentTime + 0.001);
+      osc.frequency.setValueAtTime(freq, safeTime);
 
-    // Warm envelope
-    gainNode.gain.setValueAtTime(0.001, time);
-    gainNode.gain.exponentialRampToValueAtTime(gainVal, time + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+      // Warm envelope
+      gainNode.gain.setValueAtTime(0.001, safeTime);
+      gainNode.gain.exponentialRampToValueAtTime(gainVal, safeTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, safeTime + duration);
 
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
 
-    osc.start(time);
-    osc.stop(time + duration);
+      osc.start(safeTime);
+      osc.stop(safeTime + duration);
+    } catch (e) {}
   }
 
   // Pentatonic serene melody notes in Hz (C4, D4, E4, G4, A4, C5, D5, E5)
@@ -411,14 +421,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Particle types: Petal, Sparkle, Chalk Dust, Heart
   const particles = [];
-  const maxAmbientParticles = 40;
+  const maxAmbientParticles = 65;
 
   // Colors for petals
   const petalColors = [
     '#ff4d6d', '#ff758f', '#ffb3c1', // Cherry/Rose pinks
     '#e63946', '#c1121f',             // Phượng đỏ
     '#ffd166', '#f4a261',             // Gold/Autumn petals
-    '#ffffff'                         // Chalk sparkles
+    '#ffffff', '#fff0f3'              // Chalk sparkles
   ];
 
   class Particle {
@@ -429,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     reset(x, y, isBurst = false) {
       this.x = x !== undefined ? x : Math.random() * width;
       this.y = y !== undefined ? y : -20;
-      this.size = Math.random() * 8 + 6;
+      this.size = Math.random() * 10 + 9;
       this.color = petalColors[Math.floor(Math.random() * petalColors.length)];
       this.rotation = Math.random() * Math.PI * 2;
       this.rotSpeed = (Math.random() - 0.5) * 0.05;
