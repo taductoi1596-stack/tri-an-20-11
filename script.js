@@ -528,3 +528,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial render of QR canvas in background
   drawQRCodeOnCanvas();
 });
+

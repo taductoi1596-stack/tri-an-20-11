@@ -238,3 +238,4 @@ const htmlPreview = `<!DOCTYPE html>
 const previewPath = path.join(__dirname, 'qr-preview.html');
 fs.writeFileSync(previewPath, htmlPreview, 'utf-8');
 console.log('Saved preview page to:', previewPath);
+
